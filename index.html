@@ -651,17 +651,17 @@
 
   /* ── LOADER STAGE CYCLING ── */
   const stages = [
-    '\u27F3 Initialising AI engine\u2026',
-    '\u27F3 Researching company and industry\u2026',
-    '\u27F3 Writing Executive Summary\u2026',
-    '\u27F3 Drafting Chapter 1 \u2014 Industry Profile\u2026',
-    '\u27F3 Drafting Chapter 2 \u2014 Organization Profile\u2026',
-    '\u27F3 Applying McKinsey 7S & Porter Five Forces\u2026',
-    '\u27F3 Writing Learning Experience (Chapter 4)\u2026',
-    '\u27F3 Finalising Suggestions & Conclusion\u2026',
-    '\u27F3 Formatting DOCX with Times New Roman\u2026',
-    '\u27F3 Compiling your 35-page report\u2026',
-  ];
+  '⟳ Initialising AI engine…',
+  '⟳ Researching company and industry…',
+  '⟳ Writing Executive Summary…',
+  '⟳ Drafting Chapter 1 — Industry Profile…',
+  '⟳ Drafting Chapter 2 — Organization Profile…',
+  '⟳ Applying McKinsey 7S & Porter Five Forces…',
+  '⟳ Writing Learning Experience (Chapter 4)…',
+  '⟳ Finalising Suggestions & Conclusion…',
+  '⟳ Formatting DOCX with Times New Roman…',
+  '⟳ Compiling your 35-page report…'
+];
   let stageIdx = 0, stageInterval;
 
   function startStages() {
@@ -670,7 +670,7 @@
     stageInterval = setInterval(() => {
       stageIdx = (stageIdx + 1) % stages.length;
       document.getElementById('loader-stage').textContent = stages[stageIdx];
-    }, 4500);
+    }, 8000);
   }
 
   function stopStages() { clearInterval(stageInterval); }
