@@ -371,6 +371,15 @@
       margin-bottom: 1rem;
     }
     .download-btn:hover { background: var(--gold); color: var(--ink); }
+    <div id="regen-error" style="
+  display:none;
+  background:#fff0f0;
+  border:1px solid #e8aaaa;
+  padding:10px;
+  margin-bottom:10px;
+  color:#b84040;
+  font-size:14px;
+"></div>
 
     /* ── REGENERATE SECTION ── */
     .regen-section {
@@ -758,9 +767,9 @@ lastPayload.sessionKey = sessionKey;
   async function regenerateReport() {
     if (regenLeft <= 0) { showError('No regenerations remaining.'); return; }
     const changes = document.getElementById('regen-input').value.trim();
-    if (!changes) { showError('Please describe the changes you want before regenerating.'); return; }
+    if (!changes) { showRegenError('Please describe the changes you want before regenerating.'); return; }
     if (!lastPayload.sessionKey) {
-  showError("Session expired. Please generate a new report.");
+  showRegenError("Session expired. Please generate a new report.");
   return;
 }
 
@@ -807,6 +816,15 @@ lastPayload.sessionKey = sessionKey;
     document.getElementById('regen-btn').disabled = false;
     document.getElementById('regen-input').value = '';
   }
+  function showRegenError(msg) {
+  const el = document.getElementById('regen-error');
+  el.textContent = '⚠ ' + msg;
+  el.style.display = 'block';
+
+  setTimeout(() => {
+    el.style.display = 'none';
+  }, 5000);
+}
 </script>
 </body>
 </html>
