@@ -729,6 +729,8 @@
       }
 
       reportBlob = await res.blob();
+      const sessionKey = res.headers.get("X-Session-Key");
+lastPayload.sessionKey = sessionKey;
       reportFilename = `${name.replace(/\s+/g,'_')}_Internship_Report.docx`;
       hideLoading();
       showResult();
@@ -757,6 +759,10 @@
     if (regenLeft <= 0) { showError('No regenerations remaining.'); return; }
     const changes = document.getElementById('regen-input').value.trim();
     if (!changes) { showError('Please describe the changes you want before regenerating.'); return; }
+    if (!lastPayload.sessionKey) {
+  showError("Session expired. Please generate a new report.");
+  return;
+}
 
     regenLeft--;
     document.getElementById('regen-count').textContent = `${regenLeft} regeneration${regenLeft !== 1 ? 's' : ''} remaining`;
