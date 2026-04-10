@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JIT.Studio — Internship Report Maker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --ink:      #0f0e0c;
+      --paper:    #faf8f3;
+      --cream:    #f2ede3;
+      --gold:     #c49a3c;
+      --gold-lt:  #e8c97a;
+      --muted:    #7a7065;
+      --border:   #ddd8cc;
+      --red:      #b84040;
+      --success:  #3a7d5e;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── GRAIN OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size: 180px 180px;
+      opacity: 0.45;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: relative; z-index: 10;
+      padding: 2.5rem 4rem 0;
+      display: flex; align-items: baseline; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.5rem;
+    }
+
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem; font-weight: 800; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--ink);
+    }
+    .logo span { color: var(--gold); }
+
+    .tagline {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem; color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative; z-index: 1;
+      padding: 5rem 4rem 3rem;
+      max-width: 820px;
+    }
+
+    .hero-eyebrow {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem; letter-spacing: 0.22em;
+      color: var(--gold); text-transform: uppercase;
+      margin-bottom: 1.2rem;
+    }
+
+    .hero h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.8rem, 5.5vw, 4.4rem);
+      font-weight: 300; line-height: 1.1;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      margin-bottom: 1.4rem;
+    }
+
+    .hero h1 em {
+      font-style: italic;
+      color: var(--gold);
+    }
+
+    .hero p {
+      font-size: 1.2rem; font-weight: 300; line-height: 1.7;
+      color: var(--muted); max-width: 560px;
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      display: flex; align-items: center; gap: 1.2rem;
+      padding: 0 4rem; margin: 0.5rem 0 2rem;
+    }
+    .divider-line { flex: 1; height: 1px; background: var(--border); }
+    .divider-icon {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem; color: var(--muted);
+      letter-spacing: 0.15em;
+    }
+
+    /* ── FORM WRAPPER ── */
+    .form-shell {
+      position: relative; z-index: 1;
+      margin: 0 4rem 5rem;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      box-shadow: 0 2px 40px rgba(0,0,0,0.06), 0 0 0 4px var(--cream);
+      overflow: hidden;
+    }
+
+    .form-header {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 1.6rem 2.8rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .form-header-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.78rem; font-weight: 600;
+      letter-spacing: 0.2em; text-transform: uppercase;
+    }
+
+    .form-header-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem; color: var(--gold-lt);
+      border: 1px solid var(--gold);
+      padding: 0.2rem 0.7rem; border-radius: 2px;
+      letter-spacing: 0.1em;
+    }
+
+    /* ── FORM SECTIONS ── */
+    .section {
+      padding: 2.5rem 2.8rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .section:last-of-type { border-bottom: none; }
+
+    .section-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.63rem; letter-spacing: 0.25em;
+      text-transform: uppercase; color: var(--gold);
+      margin-bottom: 1.8rem;
+      display: flex; align-items: center; gap: 0.8rem;
+    }
+    .section-label::after {
+      content: ''; flex: 1; height: 1px;
+      background: linear-gradient(90deg, var(--border), transparent);
+    }
+
+    /* ── GRID ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.6rem; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.6rem; }
+    .span-2 { grid-column: span 2; }
+
+    /* ── FIELD ── */
+    .field { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    label {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.72rem; font-weight: 600;
+      letter-spacing: 0.06em; color: var(--ink);
+    }
+    label .opt {
+      font-family: 'DM Mono', monospace;
+      font-weight: 300; font-size: 0.6rem;
+      color: var(--muted); margin-left: 0.4rem;
+    }
+
+    input[type="text"],
+    input[type="url"],
+    textarea {
+      width: 100%;
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 0.85rem 1rem;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.05rem;
+      color: var(--ink);
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+      outline: none;
+      resize: vertical;
+    }
+
+    input[type="text"]:focus,
+    input[type="url"]:focus,
+    textarea:focus {
+      border-color: var(--gold);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(196,154,60,0.12);
+    }
+
+    input[type="text"]::placeholder,
+    input[type="url"]::placeholder,
+    textarea::placeholder {
+      color: #b5ad9f;
+      font-style: italic;
+    }
+
+    .char-counter {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--muted);
+      text-align: right;
+      letter-spacing: 0.05em;
+    }
+    .char-counter.warn { color: var(--red); }
+    .char-counter.ok   { color: var(--success); }
+
+    /* ── SUBMIT BUTTON ── */
+    .submit-zone {
+      padding: 2.5rem 2.8rem;
+      background: var(--cream);
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .submit-note {
+      font-size: 1rem; font-weight: 300; font-style: italic;
+      color: var(--muted); max-width: 380px; line-height: 1.5;
+    }
+
+    .btn-submit {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.78rem; font-weight: 700;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      background: var(--ink);
+      color: var(--paper);
+      border: none; cursor: pointer;
+      padding: 1.1rem 3rem;
+      border-radius: 2px;
+      position: relative; overflow: hidden;
+      transition: background 0.25s, transform 0.15s;
+    }
+
+    .btn-submit::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: var(--gold);
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+    }
+
+    .btn-submit:hover::before { transform: translateX(0); }
+    .btn-submit span { position: relative; z-index: 1; }
+    .btn-submit:active { transform: scale(0.98); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── LOADING STATE ── */
+    #loading-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(15,14,12,0.82);
+      backdrop-filter: blur(6px);
+      align-items: center; justify-content: center;
+      flex-direction: column; gap: 2rem;
+    }
+    #loading-overlay.active { display: flex; }
+
+    .loader-box {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      padding: 3rem 4rem;
+      text-align: center;
+      border-radius: 2px;
+      max-width: 440px;
+    }
+
+    .loader-spinner {
+      width: 48px; height: 48px;
+      border: 2px solid var(--border);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+      margin: 0 auto 1.8rem;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loader-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.85rem; font-weight: 700;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      margin-bottom: 0.8rem;
+    }
+
+    .loader-sub {
+      font-size: 1rem; font-weight: 300; font-style: italic;
+      color: var(--muted); line-height: 1.5;
+    }
+
+    .loader-stage {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem; color: var(--gold);
+      margin-top: 1.2rem; letter-spacing: 0.1em;
+    }
+
+    /* ── RESULT PANEL ── */
+    #result-panel {
+      display: none;
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(15,14,12,0.85);
+      backdrop-filter: blur(8px);
+      align-items: center; justify-content: center;
+    }
+    #result-panel.active { display: flex; }
+
+    .result-box {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      width: min(680px, 90vw);
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 60px rgba(0,0,0,0.25);
+    }
+
+    .result-header {
+      background: var(--success);
+      color: #fff;
+      padding: 1.4rem 2rem;
+      display: flex; align-items: center; gap: 1rem;
+    }
+
+    .result-header-icon { font-size: 1.4rem; }
+
+    .result-header-text h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.82rem; font-weight: 700;
+      letter-spacing: 0.15em; text-transform: uppercase;
+    }
+
+    .result-header-text p {
+      font-size: 0.85rem; font-weight: 300;
+      opacity: 0.85; margin-top: 0.2rem;
+    }
+
+    .result-body { padding: 2rem; }
+
+    .result-notice {
+      background: #fffbf0;
+      border: 1px solid #e8c97a;
+      border-radius: 2px;
+      padding: 1rem 1.2rem;
+      font-size: 0.95rem; line-height: 1.6;
+      color: #6b5a1e;
+      margin-bottom: 1.8rem;
+    }
+
+    .download-btn {
+      display: block; width: 100%;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.82rem; font-weight: 700;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      background: var(--ink); color: var(--paper);
+      border: none; cursor: pointer;
+      padding: 1.1rem;
+      border-radius: 2px;
+      transition: background 0.2s;
+      margin-bottom: 1rem;
+    }
+    .download-btn:hover { background: var(--gold); color: var(--ink); }
+
+    /* ── REGENERATE SECTION ── */
+    .regen-section {
+      border-top: 1px solid var(--border);
+      padding-top: 1.6rem;
+      margin-top: 1.6rem;
+    }
+
+    .regen-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    .regen-count {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem; color: var(--gold);
+      margin-bottom: 0.8rem;
+    }
+
+    .regen-section textarea {
+      min-height: 80px;
+      font-size: 0.95rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .regen-btn {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--ink);
+      cursor: pointer;
+      padding: 0.8rem 2rem;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+    .regen-btn:hover { background: var(--ink); color: var(--paper); }
+    .regen-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .close-btn {
+      display: block; width: 100%;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.7rem; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      background: transparent; color: var(--muted);
+      border: 1px solid var(--border);
+      cursor: pointer; padding: 0.75rem;
+      border-radius: 2px; margin-top: 1rem;
+      transition: all 0.2s;
+    }
+    .close-btn:hover { border-color: var(--red); color: var(--red); }
+
+    /* ── ERROR ── */
+    .error-banner {
+      display: none;
+      background: #fff0f0; border: 1px solid #e8aaaa;
+      border-radius: 2px; padding: 1rem 1.2rem;
+      color: var(--red); font-size: 0.95rem;
+      margin: 0 2.8rem 1.5rem;
+    }
+    .error-banner.active { display: block; }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative; z-index: 1;
+      text-align: center;
+      padding: 2rem 4rem;
+      border-top: 1px solid var(--border);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.63rem; letter-spacing: 0.12em;
+      color: var(--muted);
+    }
+    footer span { color: var(--gold); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      header, .hero, .form-shell { margin: 0; padding-left: 1.4rem; padding-right: 1.4rem; }
+      .form-shell { margin: 0 1rem 3rem; }
+      .divider { padding: 0 1.4rem; }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .span-2 { grid-column: span 1; }
+      .section { padding: 2rem 1.6rem; }
+      .form-header { padding: 1.2rem 1.6rem; }
+      .submit-zone { padding: 1.8rem 1.6rem; }
+      .hero { padding: 3rem 1.4rem 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">JIT<span>.Studio</span></div>
+  <div class="tagline">Internship Report Generator</div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">✦ AI-Powered Report Generation</div>
+  <h1>Turn your internship<br/>into a <em>polished report</em></h1>
+  <p>Fill in your details below. Our AI engine crafts a 35-page, professionally structured internship report — complete with industry analysis, McKinsey's 7S, Porter's Five Forces, and more.</p>
+</section>
+
+<div class="divider">
+  <div class="divider-line"></div>
+  <div class="divider-icon">◆ BEGIN FORM ◆</div>
+  <div class="divider-line"></div>
+</div>
+
+<!-- ERROR BANNER -->
+<div class="error-banner" id="error-banner"></div>
+
+<!-- FORM -->
+<div class="form-shell">
+  <div class="form-header">
+    <div class="form-header-title">Internship Details Form</div>
+    <div class="form-header-badge">Step 1 of 1</div>
+  </div>
+
+  <div id="main-form">
+
+    <!-- SECTION 1: Personal -->
+    <div class="section">
+      <div class="section-label">01 — Personal Information</div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" placeholder="Your full name" required />
+        </div>
+        <div class="field">
+          <label for="role">Internship Role / Designation</label>
+          <input type="text" id="role" placeholder="e.g. Marketing Intern" required />
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: Company -->
+    <div class="section">
+      <div class="section-label">02 — Company Information</div>
+      <div class="grid-3">
+        <div class="field">
+          <label for="company">Company Name</label>
+          <input type="text" id="company" placeholder="e.g. Tata Consultancy Services" required />
+        </div>
+        <div class="field">
+          <label for="website">Company Website <span class="opt">(optional)</span></label>
+          <input type="url" id="website" placeholder="https://example.com" />
+        </div>
+        <div class="field">
+          <label for="industry">Industry / Sector</label>
+          <input type="text" id="industry" placeholder="e.g. Information Technology" required />
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: Company Details -->
+    <div class="section">
+      <div class="section-label">03 — About the Company</div>
+      <div style="display:flex; flex-direction:column; gap:1.6rem;">
+        <div class="field">
+          <label for="company-details">Company Overview <span class="opt">(max 500 characters)</span></label>
+          <textarea id="company-details" rows="4" maxlength="500"
+            placeholder="Briefly describe what the company does, its size, headquarters, services/products…"></textarea>
+          <div class="char-counter" id="cd-counter">0 / 500</div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="vision">Company Vision</label>
+            <textarea id="vision" rows="3"
+              placeholder="e.g. To be the most trusted technology partner globally…"></textarea>
+          </div>
+          <div class="field">
+            <label for="mission">Company Mission</label>
+            <textarea id="mission" rows="3"
+              placeholder="e.g. To deliver innovative solutions that empower businesses…"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 4: Additional Info -->
+    <div class="section">
+      <div class="section-label">04 — Your Experience & Additional Context</div>
+      <div class="field">
+        <label for="extra">Additional Details <span class="opt">(max 1000 characters)</span></label>
+        <textarea id="extra" rows="7" maxlength="1000"
+          placeholder="Share specific experiences, projects you worked on, skills you gained, any particular topics you want the report to highlight, names of mentors/teams, tools used, challenges faced, achievements, etc…"></textarea>
+        <div class="char-counter" id="ex-counter">0 / 1000</div>
+      </div>
+    </div>
+
+    <!-- SUBMIT -->
+    <div class="submit-zone">
+      <div class="submit-note">
+        Your report will be generated as a 35-page Word document with Times New Roman, 12pt, 1.5 line spacing — ready to format and submit.
+      </div>
+      <button class="btn-submit" id="submit-btn" onclick="submitForm()">
+        <span>Generate Report →</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay">
+  <div class="loader-box">
+    <div class="loader-spinner"></div>
+    <div class="loader-title">Crafting Your Report</div>
+    <div class="loader-sub">Our AI is researching your company, writing all five chapters, and structuring 35 pages of content…</div>
+    <div class="loader-stage" id="loader-stage">⟳ Initialising Groq AI engine…</div>
+  </div>
+</div>
+
+<!-- RESULT PANEL -->
+<div id="result-panel">
+  <div class="result-box">
+    <div class="result-header">
+      <div class="result-header-icon">✓</div>
+      <div class="result-header-text">
+        <h3>Report Ready</h3>
+        <p>Your internship report has been generated successfully.</p>
+      </div>
+    </div>
+    <div class="result-body">
+      <div class="result-notice">
+        ⚠ Please review and verify all content before submission. AI-generated text may require fact-checking. Format headings and page numbers as per your institution's guidelines.
+      </div>
+      <button class="download-btn" id="download-btn" onclick="downloadReport()">
+        ⬇ Download Report (.docx)
+      </button>
+
+      <!-- REGENERATE -->
+      <div class="regen-section">
+        <div class="regen-title">◆ Request Changes</div>
+        <div class="regen-count" id="regen-count">3 regenerations remaining</div>
+        <textarea id="regen-input" maxlength="200"
+          placeholder="Describe what you'd like changed — e.g. 'Expand the learning experience in Chapter 4', 'Add more about digital marketing tools used'…"></textarea>
+        <div class="char-counter" id="regen-counter">0 / 200</div>
+        <button class="regen-btn" id="regen-btn" onclick="regenerateReport()">
+          Regenerate with Changes
+        </button>
+      </div>
+
+      <button class="close-btn" onclick="closeResult()">✕ Start a New Report</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ── CONFIG ── */
+  const WORKER_URL = 'jitstudiointernshiprep.funfungusfun.workers.dev'; // <-- Replace this
+
+  /* ── STATE ── */
+  let reportBlob = null;
+  let reportFilename = 'internship_report.docx';
+  let regenLeft = 3;
+  let lastPayload = null;
+
+  /* ── CHAR COUNTERS ── */
+  function setupCounter(inputId, counterId, max) {
+    const el = document.getElementById(inputId);
+    const counter = document.getElementById(counterId);
+    el.addEventListener('input', () => {
+      const len = el.value.length;
+      counter.textContent = `${len} / ${max}`;
+      counter.className = 'char-counter ' + (len >= max ? 'warn' : len >= max * 0.85 ? 'ok' : '');
+    });
+  }
+  setupCounter('company-details', 'cd-counter', 500);
+  setupCounter('extra', 'ex-counter', 1000);
+  setupCounter('regen-input', 'regen-counter', 200);
+
+  /* ── LOADER STAGE CYCLING ── */
+  const stages = [
+    '\u27F3 Initialising AI engine\u2026',
+    '\u27F3 Researching company and industry\u2026',
+    '\u27F3 Writing Executive Summary\u2026',
+    '\u27F3 Drafting Chapter 1 \u2014 Industry Profile\u2026',
+    '\u27F3 Drafting Chapter 2 \u2014 Organization Profile\u2026',
+    '\u27F3 Applying McKinsey 7S & Porter Five Forces\u2026',
+    '\u27F3 Writing Learning Experience (Chapter 4)\u2026',
+    '\u27F3 Finalising Suggestions & Conclusion\u2026',
+    '\u27F3 Formatting DOCX with Times New Roman\u2026',
+    '\u27F3 Compiling your 35-page report\u2026',
+  ];
+  let stageIdx = 0, stageInterval;
+
+  function startStages() {
+    stageIdx = 0;
+    document.getElementById('loader-stage').textContent = stages[0];
+    stageInterval = setInterval(() => {
+      stageIdx = (stageIdx + 1) % stages.length;
+      document.getElementById('loader-stage').textContent = stages[stageIdx];
+    }, 4500);
+  }
+
+  function stopStages() { clearInterval(stageInterval); }
+
+  /* ── SHOW / HIDE HELPERS ── */
+  function showLoading() {
+    document.getElementById('loading-overlay').classList.add('active');
+    startStages();
+  }
+  function hideLoading() {
+    document.getElementById('loading-overlay').classList.remove('active');
+    stopStages();
+  }
+  function showResult() { document.getElementById('result-panel').classList.add('active'); }
+  function showError(msg) {
+    const el = document.getElementById('error-banner');
+    el.textContent = '⚠ ' + msg;
+    el.classList.add('active');
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => el.classList.remove('active'), 8000);
+  }
+
+  /* ── SUBMIT ── */
+  async function submitForm() {
+    document.getElementById('error-banner').classList.remove('active');
+
+    const name    = document.getElementById('name').value.trim();
+    const company = document.getElementById('company').value.trim();
+    const website = document.getElementById('website').value.trim();
+    const industry= document.getElementById('industry').value.trim();
+    const details = document.getElementById('company-details').value.trim();
+    const vision  = document.getElementById('vision').value.trim();
+    const mission = document.getElementById('mission').value.trim();
+    const role    = document.getElementById('role').value.trim();
+    const extra   = document.getElementById('extra').value.trim();
+
+    if (!name || !company || !industry || !role) {
+      showError('Please fill in all required fields: Name, Company, Industry, and Role.');
+      return;
+    }
+
+    lastPayload = { name, company, website, industry, details, vision, mission, role, extra, changes: '' };
+    document.getElementById('submit-btn').disabled = true;
+    showLoading();
+
+    try {
+      const res = await fetch(`${WORKER_URL}/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(lastPayload),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Unknown error from server.' }));
+        throw new Error(err.error || `Server returned ${res.status}`);
+      }
+
+      reportBlob = await res.blob();
+      reportFilename = `${name.replace(/\s+/g,'_')}_Internship_Report.docx`;
+      hideLoading();
+      showResult();
+
+    } catch (e) {
+      hideLoading();
+      showError(e.message || 'Something went wrong. Please try again.');
+    } finally {
+      document.getElementById('submit-btn').disabled = false;
+    }
+  }
+
+  /* ── DOWNLOAD ── */
+  function downloadReport() {
+    if (!reportBlob) return;
+    const url = URL.createObjectURL(reportBlob);
+    const a = document.createElement('a');
+    a.href = url; a.download = reportFilename;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  /* ── REGENERATE ── */
+  async function regenerateReport() {
+    if (regenLeft <= 0) { showError('No regenerations remaining.'); return; }
+    const changes = document.getElementById('regen-input').value.trim();
+    if (!changes) { showError('Please describe the changes you want before regenerating.'); return; }
+
+    regenLeft--;
+    document.getElementById('regen-count').textContent = `${regenLeft} regeneration${regenLeft !== 1 ? 's' : ''} remaining`;
+    if (regenLeft === 0) document.getElementById('regen-btn').disabled = true;
+
+    document.getElementById('result-panel').classList.remove('active');
+    showLoading();
+
+    try {
+      const payload = { ...lastPayload, changes };
+      const res = await fetch(`${WORKER_URL}/regenerate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Unknown error from server.' }));
+        throw new Error(err.error || `Server returned ${res.status}`);
+      }
+
+      reportBlob = await res.blob();
+      hideLoading();
+      showResult();
+      document.getElementById('regen-input').value = '';
+      document.getElementById('regen-counter').textContent = '0 / 200';
+
+    } catch (e) {
+      hideLoading();
+      regenLeft++;
+      document.getElementById('regen-count').textContent = `${regenLeft} regeneration${regenLeft !== 1 ? 's' : ''} remaining`;
+      if (regenLeft > 0) document.getElementById('regen-btn').disabled = false;
+      showError(e.message || 'Regeneration failed. Please try again.');
+    }
+  }
+
+  /* ── CLOSE RESULT ── */
+  function closeResult() {
+    document.getElementById('result-panel').classList.remove('active');
+    reportBlob = null; regenLeft = 3;
+    document.getElementById('regen-count').textContent = '3 regenerations remaining';
+    document.getElementById('regen-btn').disabled = false;
+    document.getElementById('regen-input').value = '';
+  }
+</script>
+</body>
+</html>
